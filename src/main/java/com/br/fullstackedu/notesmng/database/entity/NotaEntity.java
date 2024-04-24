@@ -16,6 +16,10 @@ public class NotaEntity {
     @NotNull(message = "Atributo title é obrigatório")
     private String title;
 
+    @Column(nullable = false)
+    @NotNull(message = "Atributo content é obrigatório")
+    private String content;
+
     @ManyToOne
     @JoinColumn(name = "id_caderno")
     @NotNull(message = "Atributo id_caderno é obrigatorio")
