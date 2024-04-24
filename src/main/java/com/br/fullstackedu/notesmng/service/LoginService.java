@@ -1,11 +1,14 @@
 package com.br.fullstackedu.notesmng.service;
 
+import com.br.fullstackedu.notesmng.controller.dto.dtoRequest.CadastroRequest;
 import com.br.fullstackedu.notesmng.controller.dto.dtoRequest.LoginRequest;
+import com.br.fullstackedu.notesmng.controller.dto.dtoResponse.CadastroResponse;
 import com.br.fullstackedu.notesmng.controller.dto.dtoResponse.LoginResponse;
 import com.br.fullstackedu.notesmng.database.entity.UsuarioEntity;
 import com.br.fullstackedu.notesmng.database.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -23,6 +26,20 @@ public class LoginService {
     private final UsuarioRepository usuarioRepository;
     private final BCryptPasswordEncoder bCryptEncoder;
     private final JwtEncoder jwtEncoder;
+
+    public CadastroResponse createUser(CadastroRequest cadastroRequest) {
+        boolean foundUser = usuarioRepository.findByNomeUsuario(cadastroRequest.nome_usuario()).isPresent();
+        if (foundUser)
+            return new CadastroResponse(false, LocalDateTime.now() , "Usuário [" + cadastroRequest.nome_usuario() + "] já existe" , HttpStatus.CONFLICT);
+
+        UsuarioEntity newUser = new UsuarioEntity();
+        newUser.setNomeUsuario(cadastroRequest.nome_usuario());
+        newUser.setSenha(bCryptEncoder.encode(cadastroRequest.senha()));
+        usuarioRepository.save(newUser);
+
+        return new CadastroResponse(true, LocalDateTime.now() , "Usuário criado com sucesso" , HttpStatus.CREATED);
+
+    }
 
     public LoginResponse doLogin(LoginRequest loginRequest) throws Exception{
         try {
