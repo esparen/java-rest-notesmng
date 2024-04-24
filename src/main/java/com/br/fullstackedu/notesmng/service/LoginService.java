@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,16 @@ public class LoginService {
     private final UsuarioRepository usuarioRepository;
     private final BCryptPasswordEncoder bCryptEncoder;
     private final JwtEncoder jwtEncoder;
+    private final JwtDecoder jwtDecoder;
+
+    public String getFieldInToken(String token, String field) {
+        String result = jwtDecoder
+                .decode(token)
+                .getClaims()
+                .get(field)
+                .toString();
+        return result;
+    }
 
     public CadastroResponse createUser(CadastroRequest cadastroRequest) {
         boolean foundUser = usuarioRepository.findByNomeUsuario(cadastroRequest.nome_usuario()).isPresent();
@@ -69,11 +80,12 @@ public class LoginService {
             String scope = "admin";
 
             JwtClaimsSet claims = JwtClaimsSet.builder()
-                    .issuer("labpcp_system")
+                    .issuer("notesmng_system")
                     .issuedAt(now)
                     .expiresAt(now.plusSeconds(EXPIRATION_TIME))
                     .subject(usuarioEntity.getId().toString())  // token owner
                     .claim("scope", scope)
+                    .claim("usuario_id", usuarioEntity.getId())
                     .build();
             log.info("claims: [{}]", claims);
 

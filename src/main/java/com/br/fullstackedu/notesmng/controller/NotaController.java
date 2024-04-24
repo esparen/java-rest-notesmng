@@ -20,9 +20,12 @@ public class NotaController {
     private final NotaService notaService;
 
     @GetMapping
-    public ResponseEntity<NotaResponse> getAllNotas() {
+    public ResponseEntity<NotaResponse> getAllNotas(
+            @RequestHeader(name = "Authorization") String requestToken
+    ) {
         log.info("GET /notas");
-        NotaResponse response = notaService.getAll();
+        String actualToken = requestToken.substring(7);
+        NotaResponse response = notaService.getAll(actualToken);
         if (response.success()){
             log.info("GET /notas -> 200 ");
         } else {
@@ -33,9 +36,12 @@ public class NotaController {
 
     //GET by id
     @GetMapping("/{targetId}")
-    public ResponseEntity<NotaResponse> getNotaById(@PathVariable long targetId) {
+    public ResponseEntity<NotaResponse> getNotaById(
+            @PathVariable long targetId,
+            @RequestHeader(name = "Authorization") String requestToken) {
         log.info("GET /notas/{targetId}");
-        NotaResponse response = notaService.getById(targetId);
+        String actualToken = requestToken.substring(7);
+        NotaResponse response = notaService.getById(targetId, actualToken);
         if (response.success()){
             log.info("GET /notas/{targetId} -> 200 ");
         } else {
@@ -46,7 +52,8 @@ public class NotaController {
     //POST
     @PostMapping()
     public ResponseEntity<NotaResponse> newNota(
-            @Valid @RequestBody NotaRequest notaRequest
+            @Valid @RequestBody NotaRequest notaRequest,
+            @RequestHeader(name = "Authorization") String requestToken
     ) throws Exception {
         log.info("POST /notas ");
         NotaResponse response = notaService.insertNota(notaRequest);
@@ -61,10 +68,12 @@ public class NotaController {
     @PutMapping("/{targetId}")
     public ResponseEntity<NotaResponse> updateNota(
             @PathVariable Long targetId,
-            @Valid @RequestBody NotaRequest notaRequest)
+            @Valid @RequestBody NotaRequest notaRequest,
+            @RequestHeader(name = "Authorization") String requestToken)
     {
         log.info("PUT /notas");
-        NotaResponse response = notaService.updateNota(targetId, notaRequest);
+        String actualToken = requestToken.substring(7);
+        NotaResponse response = notaService.updateNota(targetId, notaRequest, actualToken);
         if (response.success()) {
             log.info("PUT /notas -> OK ");
         } else {
@@ -75,10 +84,13 @@ public class NotaController {
 
     @DeleteMapping("/{targetId}")
     public ResponseEntity<NotaResponse> deleteNota(
-            @PathVariable @NotNull(message = "ID de Docente é requerido para excluão") Long targetId)
+            @PathVariable @NotNull(message = "ID de Docente é requerido para excluão") Long targetId,
+            @RequestHeader(name = "Authorization") String requestToken
+    )
     {
         log.info("DELETE /notas");
-        NotaResponse response = notaService.deleteNota(targetId);
+        String actualToken = requestToken.substring(7);
+        NotaResponse response = notaService.deleteNota(targetId, actualToken);
         if (response.success()) {
             log.info("DELETE /notas -> OK ");
         } else {
