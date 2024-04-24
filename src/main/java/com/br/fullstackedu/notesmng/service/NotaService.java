@@ -25,12 +25,14 @@ public class NotaService {
     private final NotaRepository notaRepository;
     private final UsuarioRepository usuarioRepository;
     private final CadernoRepository cadernoRepository;
+    private final LoginService loginService;
 
-    public NotaResponse getAll() {
+    public NotaResponse getAll(String actualToken) {
         try {
-            List<NotaEntity> notasList = notaRepository.findAll();
+            Long ownerId = Long.valueOf(loginService.getFieldInToken(actualToken, "usuario_id"));
+            List<NotaEntity> notasList = notaRepository.findAllByUsuarioId(ownerId);
             if (notasList.isEmpty()) {
-                return new NotaResponse(false, LocalDateTime.now() , "Nenhum nota encontrado" , null,  HttpStatus.NOT_FOUND );
+                return new NotaResponse(false, LocalDateTime.now() , "Nenhuma nota encontrado que pertença ao usuário logado" , null,  HttpStatus.NOT_FOUND );
             } else {
                 return new NotaResponse(true, LocalDateTime.now(), "Registros encontrados: "+ notasList.size(), notasList, HttpStatus.OK);
             }
@@ -41,11 +43,12 @@ public class NotaService {
     }
 
     //getById
-    public NotaResponse getById(Long targetId) {
+    public NotaResponse getById(Long targetId, String actualToken) {
         try {
-            NotaEntity nota = notaRepository.findById(targetId).orElse(null);
+            Long ownerId = Long.valueOf(loginService.getFieldInToken(actualToken, "usuario_id"));
+            NotaEntity nota = notaRepository.findByIdAndUsuarioId(targetId, ownerId).orElse(null);
             if (Objects.isNull(nota)) {
-                return new NotaResponse(true, LocalDateTime.now(), "Nenhum registro encontrado com id " + targetId , null, HttpStatus.NOT_FOUND);
+                return new NotaResponse(true, LocalDateTime.now(), "Nenhum registro encontrado com id " + targetId + " que pertença ao usuário logado" , null, HttpStatus.NOT_FOUND);
             } else {
                 return new NotaResponse(false, LocalDateTime.now() , "Registro encontrado." , Collections.singletonList(nota),  HttpStatus.OK);
             }
@@ -79,11 +82,12 @@ public class NotaService {
         }
     }
 
-    public NotaResponse updateNota(Long targetId, NotaRequest notaRequest) {
+    public NotaResponse updateNota(Long targetId, NotaRequest notaRequest, String actualToken) {
         try {
-            NotaEntity foundNotaEntity = notaRepository.findById(targetId).orElse(null);
+            Long ownerId = Long.valueOf(loginService.getFieldInToken(actualToken, "usuario_id"));
+            NotaEntity foundNotaEntity = notaRepository.findByIdAndUsuarioId(targetId, ownerId).orElse(null);
             if (Objects.isNull(foundNotaEntity))
-                return new NotaResponse(false, LocalDateTime.now() , "Nota id [" + targetId + "] não encontrado" , null, HttpStatus.NOT_FOUND);
+                return new NotaResponse(false, LocalDateTime.now() , "Nota id [" + targetId + "] não encontrado ou esta não pertence ao usuário logado" , null, HttpStatus.NOT_FOUND);
 
             UsuarioEntity foundUser = usuarioRepository.findById(notaRequest.id_usuario()).orElse(null);
             if (Objects.isNull(foundUser))
@@ -99,21 +103,22 @@ public class NotaService {
             if (Objects.nonNull(notaRequest.content())) foundNotaEntity.setContent(notaRequest.content());
             NotaEntity savedNotaEntity = notaRepository.save(foundNotaEntity);
             log.info("Nota atualizado com sucesso: {}", foundNotaEntity);
-            return new NotaResponse(true, LocalDateTime.now(),"Nota cadastrado com sucesso.", Collections.singletonList(savedNotaEntity), HttpStatus.OK);
+            return new NotaResponse(true, LocalDateTime.now(),"Nota atualizada com sucesso.", Collections.singletonList(savedNotaEntity), HttpStatus.OK);
         } catch (Exception e) {
             log.info("Falha ao atualizar Nota. Erro: {}", e.getMessage());
             return new NotaResponse(false, LocalDateTime.now() , e.getMessage() , null, HttpStatus.BAD_REQUEST );
         }
     }
 
-    public NotaResponse deleteNota(Long targetId) {
+    public NotaResponse deleteNota(Long targetId, String actualToken) {
         try {
-            NotaEntity foundNotaEntity = notaRepository.findById(targetId).orElse(null);
+            Long ownerId = Long.valueOf(loginService.getFieldInToken(actualToken, "usuario_id"));
+            NotaEntity foundNotaEntity = notaRepository.findByIdAndUsuarioId(targetId, ownerId).orElse(null);
             if (Objects.isNull(foundNotaEntity))
-                return new NotaResponse(false, LocalDateTime.now(), "Nota id [" + targetId + "] não encontrado", null, HttpStatus.NOT_FOUND);
+                return new NotaResponse(false, LocalDateTime.now(), "Nota id [" + targetId + "] não encontrada ou esta não pertence ao usuário logado", null, HttpStatus.NOT_FOUND);
             notaRepository.delete(foundNotaEntity);
             log.info("Nota removido com sucess: {}", foundNotaEntity);
-            return new NotaResponse(true, LocalDateTime.now(),"Nota cadastrado com sucesso.", Collections.singletonList(foundNotaEntity), HttpStatus.NO_CONTENT);
+            return new NotaResponse(true, LocalDateTime.now(),"Nota removida com sucesso.", Collections.singletonList(foundNotaEntity), HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             log.info("Falha ao remover Nota. Erro: {}", e.getMessage());
             return new NotaResponse(false, LocalDateTime.now(), e.getMessage(), null, HttpStatus.BAD_REQUEST);
