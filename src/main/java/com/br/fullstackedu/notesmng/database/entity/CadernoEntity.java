@@ -19,7 +19,7 @@ public class CadernoEntity {
     @ManyToOne
     @JoinColumn(name = "id_usuario")
     @NotNull(message = "Atributo id_usuario é obrigatorio")
-    private UsuarioEntity userEntity;
+    private UsuarioEntity user;
 
 
 

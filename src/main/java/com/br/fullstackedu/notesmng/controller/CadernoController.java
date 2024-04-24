@@ -21,9 +21,12 @@ public class CadernoController {
 
 
     @GetMapping
-    public ResponseEntity<CadernoResponse> getAllCadernos() {
+    public ResponseEntity<CadernoResponse> getAllCadernos(
+            @RequestHeader(name = "Authorization") String requestToken
+    ) {
         log.info("GET /cadernos");
-        CadernoResponse response = cadernoService.getAll();
+        String actualToken = requestToken.substring(7);
+        CadernoResponse response = cadernoService.getAll(actualToken);
         if (response.success()){
             log.info("GET /cadernos -> 200 ");
         } else {
@@ -34,9 +37,13 @@ public class CadernoController {
 
     //GET by id
     @GetMapping("/{targetId}")
-    public ResponseEntity<CadernoResponse> getCadernoById(@PathVariable long targetId) {
+    public ResponseEntity<CadernoResponse> getCadernoById(
+            @PathVariable long targetId,
+            @RequestHeader(name = "Authorization") String requestToken
+            ) {
         log.info("GET /cadernos/{targetId}");
-        CadernoResponse response = cadernoService.getById(targetId);
+        String actualToken = requestToken.substring(7);
+        CadernoResponse response = cadernoService.getById(targetId, actualToken);
         if (response.success()){
             log.info("GET /cadernos/{targetId} -> 200 ");
         } else {
@@ -47,7 +54,8 @@ public class CadernoController {
     //POST
     @PostMapping()
     public ResponseEntity<CadernoResponse> newCaderno(
-            @Valid @RequestBody CadernoRequest cadernoRequest
+            @Valid @RequestBody CadernoRequest cadernoRequest,
+            @RequestHeader(name = "Authorization") String requestToken
     ) throws Exception {
         log.info("POST /cadernos ");
         CadernoResponse response = cadernoService.insertCaderno(cadernoRequest);
@@ -62,10 +70,12 @@ public class CadernoController {
     @PutMapping("/{targetId}")
     public ResponseEntity<CadernoResponse> updateCaderno(
             @PathVariable Long targetId,
-            @Valid @RequestBody CadernoRequest cadernoRequest)
+            @Valid @RequestBody CadernoRequest cadernoRequest,
+            @RequestHeader(name = "Authorization") String requestToken)
     {
         log.info("PUT /cadernos");
-        CadernoResponse response = cadernoService.updateCaderno(targetId, cadernoRequest);
+        String actualToken = requestToken.substring(7);
+        CadernoResponse response = cadernoService.updateCaderno(targetId, cadernoRequest, actualToken);
         if (response.success()) {
             log.info("PUT /cadernos -> OK ");
         } else {
@@ -76,10 +86,13 @@ public class CadernoController {
 
     @DeleteMapping("/{targetId}")
     public ResponseEntity<CadernoResponse> deleteCaderno(
-            @PathVariable @NotNull(message = "ID de Docente é requerido para excluão") Long targetId)
+            @PathVariable @NotNull(message = "ID de Docente é requerido para excluão") Long targetId,
+            @RequestHeader(name = "Authorization") String requestToken
+    )
     {
         log.info("DELETE /cadernos");
-        CadernoResponse response = cadernoService.deleteCaderno(targetId);
+        String actualToken = requestToken.substring(7);
+        CadernoResponse response = cadernoService.deleteCaderno(targetId, actualToken);
         if (response.success()) {
             log.info("DELETE /cadernos -> OK ");
         } else {
