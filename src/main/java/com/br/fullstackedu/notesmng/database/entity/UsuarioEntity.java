@@ -1,10 +1,13 @@
 package com.br.fullstackedu.notesmng.database.entity;
 
+import com.br.fullstackedu.notesmng.controller.dto.dtoRequest.LoginRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Collection;
 import java.util.Set;
@@ -12,6 +15,7 @@ import java.util.Set;
 @Data
 @Entity
 @Table(name = "usuario")
+@Slf4j
 public class UsuarioEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -65,5 +69,12 @@ public class UsuarioEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public boolean isValidPassword(LoginRequest loginRequest, BCryptPasswordEncoder bCryptEncoder) {
+        return bCryptEncoder.matches(
+                loginRequest.senha(),
+                this.senha
+        );
     }
 }
